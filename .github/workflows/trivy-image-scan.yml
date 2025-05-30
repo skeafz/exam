@@ -14,13 +14,10 @@ jobs:
       - name: Install Trivy
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
-          curl -fsSL https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo gpg --dearm or -o /usr/share/keyrings/trivy.gpg 
-          # SKACHIVANIE I PREOBRAZOVANIE GPG-KLUCHA
-          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.github.io/trivy-repo/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/trivy.list
-          # DOBAVLENIE V SISTEMU ISTOCHNIKA PAKEROV TRIVY
-          sudo apt-get update
-          sudo apt-get install -y trivy
+          sudo apt-get install -y wget
+          TRIVY_VERSION=$(curl -s https://api.github.com/repos/aquasecurity/trivy/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+          wget https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.deb
+          sudo dpkg -i trivy_${TRIVY_VERSION}_Linux-64bit.deb
 
       - name: Scan image for High vulnerabilities
         run: trivy image --severity HIGH --exit-code 1 alpine/openssl:latest
